@@ -10,6 +10,7 @@ package pl.rstepniewski.sockets.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import pl.rstepniewski.sockets.io.ConsoleUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,8 +19,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Scanner;
-
-import pl.rstepniewski.sockets.io.ConsoleUtils;
 
 public class Client {
 
