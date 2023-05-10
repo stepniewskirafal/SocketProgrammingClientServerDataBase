@@ -8,9 +8,9 @@ package pl.rstepniewski.sockets.domain.user;
  * @project : SocketProgrammingClientServer
  */
 
-import pl.rstepniewski.sockets.io.file.FileName;
-import pl.rstepniewski.sockets.io.file.FilePath;
-import pl.rstepniewski.sockets.io.file.FileService;
+import pl.rstepniewski.sockets.io.db.FileName;
+import pl.rstepniewski.sockets.io.db.FilePath;
+import pl.rstepniewski.sockets.io.db.FileService;
 
 import java.io.IOException;
 import java.util.ArrayList;

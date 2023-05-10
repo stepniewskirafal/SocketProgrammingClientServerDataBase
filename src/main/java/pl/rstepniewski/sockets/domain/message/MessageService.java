@@ -10,9 +10,9 @@ package pl.rstepniewski.sockets.domain.message;
 
 import pl.rstepniewski.sockets.domain.user.User;
 import pl.rstepniewski.sockets.domain.user.UserRole;
-import pl.rstepniewski.sockets.io.file.FileName;
-import pl.rstepniewski.sockets.io.file.FilePath;
-import pl.rstepniewski.sockets.io.file.FileService;
+import pl.rstepniewski.sockets.io.db.FileName;
+import pl.rstepniewski.sockets.io.db.FilePath;
+import pl.rstepniewski.sockets.io.db.FileService;
 
 import java.io.File;
 import java.io.IOException;

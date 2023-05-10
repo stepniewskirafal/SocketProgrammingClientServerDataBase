@@ -1,4 +1,4 @@
-package pl.rstepniewski.sockets.io.file;
+package pl.rstepniewski.sockets.io.db;
 
 /**
  * Created by rafal on 19.04.2023
@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FileService implements FileManager{
+public class FileService implements Repository {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

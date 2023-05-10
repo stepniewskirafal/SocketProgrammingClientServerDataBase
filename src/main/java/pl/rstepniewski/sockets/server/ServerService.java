@@ -18,7 +18,7 @@ import pl.rstepniewski.sockets.domain.user.User;
 import pl.rstepniewski.sockets.domain.user.UserDto;
 import pl.rstepniewski.sockets.domain.user.UserRole;
 import pl.rstepniewski.sockets.domain.user.UserService;
-import pl.rstepniewski.sockets.io.file.FileService;
+import pl.rstepniewski.sockets.io.db.FileService;
 
 import java.io.BufferedReader;
 import java.io.IOException;

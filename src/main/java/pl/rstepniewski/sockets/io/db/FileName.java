@@ -1,4 +1,4 @@
-package pl.rstepniewski.sockets.io.file;
+package pl.rstepniewski.sockets.io.db;
 
 /**
  * Created by rafal on 19.04.2023
