@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -35,11 +36,10 @@ public class ServerService {
     private final Instant startTime = Instant.now();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ObjectNode jsonNode = objectMapper.createObjectNode();
-    FileService fileService = new FileService();
     UserService userService = new UserService(fileService);
     MessageService messageService = new MessageService();
 
-    ServerService(final Server server) throws IOException {
+    ServerService(final Server server) throws IOException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         this.server = server;
         start();
     }
@@ -120,7 +120,7 @@ public class ServerService {
         }
         User userByName = userByNameOptional.get();
 
-        boolean isMessageSent = messageService.sendMessage(userByName.getRole(), userByName.getUsername(), messageList);
+        boolean isMessageSent = messageService.sendMessage(messageList);
         if(isMessageSent){
             jsonNode.put("sendMessage", "The process of sending message successfully finished.");
         }else{

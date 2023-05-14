@@ -8,81 +8,55 @@ package pl.rstepniewski.sockets.domain.message;
  * @project : SocketProgrammingClientServer
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Result;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
 import pl.rstepniewski.sockets.domain.user.User;
 import pl.rstepniewski.sockets.domain.user.UserRole;
-import pl.rstepniewski.sockets.io.db.FileName;
-import pl.rstepniewski.sockets.io.db.FilePath;
-import pl.rstepniewski.sockets.io.db.FileService;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
 public class MessageService {
-    FileService fileService = new FileService();
+    MessageRepository messageRepository = new MessageRepository();
 
-    public Optional<List<Message>> getUserMessages(final User user) throws IOException {
-        Optional<List<Message>> messageList = Optional.empty();
-        final UserRole loggedUserRole = user.getRole();
-        final String filePath;
-        final File file;
+    private Connection connection;
+    private DSLContext dslContext;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-        if (loggedUserRole == UserRole.USER){
-            filePath = FilePath.USER_MESSAGE_FOLDER.getFolderPath() + "/" + user.getUsername() + "/" + FileName.MESSAGE_FILENAME.getFileName();
-            file = new File(filePath);
-            if(file.exists()){
-                messageList = Optional.of(fileService.importDataFromJsonFiles( filePath, Message[].class) );
-                fileService.deleteJsonMessagesFiles(FilePath.USER_MESSAGE_FOLDER, user.getUsername());
-            }
-        } else if (loggedUserRole == UserRole.ADMIN) {
-            filePath = FilePath.ADMIN_MESSAGE_FOLDER.getFolderPath() + "/" + user.getUsername() + "/" + FileName.MESSAGE_FILENAME.getFileName();
-            file = new File(filePath);
-            if(file.exists()) {
-                messageList =  Optional.of(fileService.importDataFromJsonFiles( filePath, Message[].class)
-                );
-                fileService.deleteJsonMessagesFiles(FilePath.ADMIN_MESSAGE_FOLDER, user.getUsername());
-            }
-        }
+    private ObjectNode objectNode = objectMapper.createObjectNode();
 
-        return messageList;
+    public MessageService() throws ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
+        //Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SocketProgrammingClientServer?serverTimezone=UTC",
+                "root",
+                "admin");
+        dslContext = DSL.using(connection, SQLDialect.MYSQL);
     }
 
-    public boolean sendMessage(final UserRole role, final String recipient, final List<Message> messageList ) throws IOException {
-        boolean isMessageSent = true;
-        final String filePath;
-        final File file;
-        final List<Message> allMessagesToSave;
-        final Optional<List<Message>> userMessageBox;
+    public String getUserMessages(final User user) throws IOException {
+        Result<Record> resultByUsername = messageRepository.findByUserName(dslContext, user.getUsername());
 
-        if (role == UserRole.USER){
-            filePath = FilePath.USER_MESSAGE_FOLDER.getFolderPath() + "/" + recipient + "/" + FileName.MESSAGE_FILENAME.getFileName();
-            file = new File(filePath);
-            if(file.exists()) {
-                userMessageBox = Optional.of(fileService.importDataFromJsonFiles( filePath, Message[].class));
-                if(userMessageBox.isEmpty()){
-                    fileService.exportDataToJsonFiles(messageList, FilePath.USER_MESSAGE_FOLDER, recipient, FileName.MESSAGE_FILENAME);
-                } else if (userMessageBox.get().size() < MessageConst.MAX_NUMBER_OF_MESSAGES.getMessageLenght()) {
-                    allMessagesToSave = userMessageBox.get();
-                    allMessagesToSave.addAll(messageList);
-                    fileService.exportDataToJsonFiles(allMessagesToSave, FilePath.USER_MESSAGE_FOLDER, recipient, FileName.MESSAGE_FILENAME);
-                }else {
-                    isMessageSent = false;
-                }
-            }else {
-                fileService.exportDataToJsonFiles(messageList, FilePath.USER_MESSAGE_FOLDER, recipient, FileName.MESSAGE_FILENAME);
-            }
-        } else if (role == UserRole.ADMIN) {
-            filePath = FilePath.ADMIN_MESSAGE_FOLDER.getFolderPath() + "/" + recipient + "/" + FileName.MESSAGE_FILENAME.getFileName();
-            file = new File(filePath);
-            if(file.exists()) {
-                userMessageBox = Optional.of(fileService.importDataFromJsonFiles( filePath, Message[].class) );
-                allMessagesToSave = userMessageBox.get();
-                allMessagesToSave.addAll(messageList);
-                fileService.exportDataToJsonFiles(allMessagesToSave, FilePath.ADMIN_MESSAGE_FOLDER, recipient, FileName.MESSAGE_FILENAME);
-            }else {
-                fileService.exportDataToJsonFiles(messageList, FilePath.ADMIN_MESSAGE_FOLDER, recipient, FileName.MESSAGE_FILENAME);
-            }
+        return objectMapper.writeValueAsString(resultByUsername);
+    }
+
+    public boolean sendMessage(final List<Message> messageList ) throws IOException {
+        boolean isMessageSent = true;
+
+        try{
+            messageRepository.addNewMessage(dslContext, messageList);
+        }catch (Exception e ){
+            isMessageSent = false;
         }
 
         return isMessageSent;
