@@ -8,98 +8,86 @@ package pl.rstepniewski.sockets.domain.user;
  * @project : SocketProgrammingClientServer
  */
 
-import pl.rstepniewski.sockets.io.db.FileName;
-import pl.rstepniewski.sockets.io.db.FilePath;
-import pl.rstepniewski.sockets.io.db.FileService;
+import org.jooq.Record;
+import org.jooq.Result;
 
-import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-public class UserService implements UserManager{
-    private final FileService fileService;
+public class UserService{
     private List<User> userList = new ArrayList<>();
-    private List<User> adminList = new ArrayList<>();
 
-    public UserService(final FileService fileService) {
-        this.fileService = fileService;
-    }
-    @Override
-    public Optional<User> getUserByName(final String userName) throws IOException {
-        userList = getUserAndAdminList();
-        return userList.stream()
-                .filter(x -> x.getUsername().equals(userName))
-                .findFirst();
+    private UserRepository userRepository = new UserRepository();
+
+    public UserService() throws SQLException {
     }
 
-    @Override
-    public List<User> getUserList() throws IOException {
-        userList = fileService.importDataFromJsonFiles(FilePath.USER_FOLDER.getFolderPath(), User[].class);
+    public Optional<User> getUserByName(final String userName) {
+        Result<Record> userByName = userRepository.getUserByName(userName);
+        User userFound = new User();
+
+        if(userByName.isNotEmpty()) {
+            userFound = new User(userByName.get(0).getValue("username", String.class)
+                    , userByName.get(0).getValue("password", String.class)
+                    , userByName.get(0).getValue("role", UserRole.class));
+        }
+
+        return Optional.ofNullable(userFound);
+    }
+
+    public List<User> getUserList() {
+        User userFound;
+        Result<Record> userRecordList = userRepository.getUserList();
+
+        if(userRecordList.isNotEmpty()) {
+            for(Record record : userRecordList){
+                userFound = new User(record.getValue("username", String.class)
+                        , record.getValue("password", String.class)
+                        , record.getValue("role", UserRole.class));
+                userList.add(userFound);
+            }
+        }
         return userList;
     }
-    @Override
-    public List<User> getAdminList() throws IOException {
-        adminList = fileService.importDataFromJsonFiles(FilePath.ADMIN_FOLDER.getFolderPath(), User[].class);
-        return adminList;
-    }
-    @Override
-    public List<User> getUserAndAdminList() throws IOException {
-        userList = getUserList();
-        adminList = getAdminList();
-        final List<User> allUserList = new ArrayList<>();
-        allUserList.addAll(userList);
-        allUserList.addAll(adminList);
 
-        return allUserList;
-    }
-    @Override
-    public boolean addNewUser(final User user) throws IOException {
-        boolean result = false;
-        final UserRole role = user.getRole();
-        final List<User> userList;
+    public List<User> getAdminList() {
+        User userFound;
+        Result<Record> adminRecordList = userRepository.getAdminList();
 
-        if (role == UserRole.USER) {
-            userList = getUserList();
-            if(!userList.contains(user)){
-                userList.add(user);
-                fileService.exportDataToJsonFiles(userList, FilePath.USER_FOLDER, FileName.USER_FILENAME);
-                result = true;
-            }
-        } else if (role == UserRole.ADMIN) {
-            adminList = getAdminList();
-            if(!adminList.contains(user)){
-                adminList.add(user);
-                fileService.exportDataToJsonFiles(adminList, FilePath.ADMIN_FOLDER, FileName.ADMIN_FILENAME);
-                result = true;
+        if(adminRecordList.isNotEmpty()) {
+            for(Record record : adminRecordList){
+                userFound = new User(record.getValue("username", String.class)
+                        , record.getValue("password", String.class)
+                        , record.getValue("role", UserRole.class));
+                userList.add(userFound);
             }
         }
-
-        return result;
+        return userList;
     }
-    @Override
-    public boolean removeUser(final String userName) throws IOException {
-        List<User> allUserList = getUserAndAdminList();
-        boolean result = false;
 
-        Optional<User> optionaUser = allUserList.stream()
-                .filter(x -> x.getUsername().equals(userName))
-                .findFirst();
+    public List<User> getUserAndAdminList() {
+        User userFound;
+        Result<Record> userAndAdminRecordList = userRepository.getUserAndAdminList();
 
-        if(!optionaUser.isEmpty()){
-            User userToRemove = optionaUser.get();
-
-            UserRole role = userToRemove.getRole();
-            if(role == UserRole.USER){
-                List<User> userList = getUserList();
-                result = userList.removeIf(x -> x.getUsername().equals(userName));
-                fileService.exportDataToJsonFiles(userList, FilePath.USER_FOLDER, FileName.USER_FILENAME);
-            } else if (role == UserRole.ADMIN) {
-                List<User> adminList = getAdminList();
-                result = adminList.removeIf(x -> x.getUsername().equals(userName));
-                fileService.exportDataToJsonFiles(adminList, FilePath.ADMIN_FOLDER, FileName.ADMIN_FILENAME);
+        if(userAndAdminRecordList.isNotEmpty()) {
+            for(Record record : userAndAdminRecordList){
+                userFound = new User(record.getValue("username", String.class)
+                        , record.getValue("password", String.class)
+                        , record.getValue("role", UserRole.class));
+                userList.add(userFound);
             }
         }
-        return result;
+        return userList;
+    }
+
+    public boolean addNewUser(final User user) {
+        return userRepository.addNewUser(user);
+    }
+
+    public boolean removeUser(final String userName) {
+        return userRepository.removeUser(userName);
     }
 }

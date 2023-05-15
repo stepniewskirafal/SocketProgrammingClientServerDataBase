@@ -13,6 +13,7 @@ import pl.rstepniewski.sockets.io.ConsoleUtils;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 
 public class Server {
     private static final String SERVER_VERSION = "0.3.0";
@@ -45,7 +46,7 @@ public class Server {
         return clientSocket;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         ServerService serverService = new ServerService(new Server());
         serverService.run();
     }

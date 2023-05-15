@@ -70,7 +70,7 @@ public class Client {
     }
 
     private void printMessageFromServer(final String messageFromServer) throws JsonProcessingException {
-        final Map<String, String> mappedMessageFromServer = objectMapper.readValue(messageFromServer, Map.class);
+/*        final Map<String, String> mappedMessageFromServer = objectMapper.readValue(messageFromServer, Map.class);
 
         String json;
         if (mappedMessageFromServer.size() > ONE_NODE_JSON) {
@@ -79,7 +79,8 @@ public class Client {
             json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(mappedMessageFromServer.values());
         }
 
-        ConsoleUtils.printLine(json);
+        ConsoleUtils.printLine(json);*/
+        ConsoleUtils.printLine(messageFromServer);
     }
 
 }

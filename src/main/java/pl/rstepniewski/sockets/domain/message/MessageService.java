@@ -9,54 +9,76 @@ package pl.rstepniewski.sockets.domain.message;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Result;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DSL;
-import pl.rstepniewski.sockets.domain.user.User;
-import pl.rstepniewski.sockets.domain.user.UserRole;
 
-import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
 
 public class MessageService {
-    MessageRepository messageRepository = new MessageRepository();
 
-    private Connection connection;
-    private DSLContext dslContext;
+    private final MessageRepository messageRepository;
+
+    public MessageService(MessageRepository messageRepository) {
+        this.messageRepository = messageRepository;
+    }
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private ObjectNode objectNode = objectMapper.createObjectNode();
 
-    public MessageService() throws ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
-        //Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SocketProgrammingClientServer?serverTimezone=UTC",
-                "root",
-                "admin");
-        dslContext = DSL.using(connection, SQLDialect.MYSQL);
+
+    public Optional<ArrayNode> getUserMessages(final String userName) {
+        ArrayNode jsonNodes = objectMapper.createArrayNode();
+        Result<Record> resultByUsername = messageRepository.findByUserName(userName);
+
+        if (resultByUsername.isNotEmpty()) {
+            jsonNodes = resultToJsonArray(resultByUsername);
+        }
+
+        return Optional.ofNullable(jsonNodes);
     }
 
-    public String getUserMessages(final User user) throws IOException {
-        Result<Record> resultByUsername = messageRepository.findByUserName(dslContext, user.getUsername());
+    private ArrayNode resultToJsonArray(Result<Record> result) {
+        ArrayNode jsonMessages = objectMapper.createArrayNode();
 
-        return objectMapper.writeValueAsString(resultByUsername);
+        for (Record record : result) {
+            ObjectNode jsonMessage = objectMapper.createObjectNode();
+            jsonMessage.put("id",  record.getValue("id").toString());
+            jsonMessage.put("topic", record.getValue("topic").toString());
+            jsonMessage.put("content", record.getValue("content").toString());
+            jsonMessage.put("recipient", record.getValue("recipient").toString());
+            jsonMessage.put("sender", record.getValue("sender").toString());
+
+            jsonMessages.add(jsonMessage);
+        }
+
+        ArrayNode resultMessages = objectMapper.createArrayNode();
+        ObjectNode resultMessage = objectMapper.createObjectNode();
+
+        resultMessage.put("Message", jsonMessages);
+        resultMessages.add(resultMessage);
+
+        return resultMessages;
     }
 
-    public boolean sendMessage(final List<Message> messageList ) throws IOException {
+    public boolean sendMessage(final Message message ) throws IOException {
         boolean isMessageSent = true;
 
-        try{
-            messageRepository.addNewMessage(dslContext, messageList);
-        }catch (Exception e ){
+        Record1<Integer> messagesInTheBoxRecord = messageRepository.countAllByUserName(message.getRecipient());
+        Integer messagesInTheBoxCnt = messagesInTheBoxRecord.value1();
+
+        if (messagesInTheBoxCnt > 5){
             isMessageSent = false;
+        }else {
+            try {
+                messageRepository.addNewMessage(message);
+            } catch (Exception e) {
+                isMessageSent = false;
+            }
         }
 
         return isMessageSent;

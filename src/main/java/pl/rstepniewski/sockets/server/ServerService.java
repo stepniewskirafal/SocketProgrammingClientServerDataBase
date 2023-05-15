@@ -10,15 +10,11 @@ package pl.rstepniewski.sockets.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import pl.rstepniewski.sockets.domain.message.Message;
-import pl.rstepniewski.sockets.domain.message.MessageConst;
-import pl.rstepniewski.sockets.domain.message.MessageService;
-import pl.rstepniewski.sockets.domain.user.User;
-import pl.rstepniewski.sockets.domain.user.UserDto;
-import pl.rstepniewski.sockets.domain.user.UserRole;
-import pl.rstepniewski.sockets.domain.user.UserService;
-import pl.rstepniewski.sockets.io.db.FileService;
+import org.jooq.tools.json.JSONArray;
+import pl.rstepniewski.sockets.domain.message.*;
+import pl.rstepniewski.sockets.domain.user.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,10 +32,12 @@ public class ServerService {
     private final Instant startTime = Instant.now();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ObjectNode jsonNode = objectMapper.createObjectNode();
-    UserService userService = new UserService(fileService);
-    MessageService messageService = new MessageService();
+    private MessageRepository messageRepository = new MessageRepository();
+    JSONArray jsonArray = new JSONArray();
+    UserService userService = new UserService();
+    MessageService messageService = new MessageService(messageRepository);
 
-    ServerService(final Server server) throws IOException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    ServerService(final Server server) throws IOException, SQLException {
         this.server = server;
         start();
     }
@@ -61,15 +59,14 @@ public class ServerService {
     }
 
     private void mainLoop() throws IOException {
-
-        /*handleAdminInterface(new User("admin1", "admin1", UserRole.ADMIN)); --testing purposes*/
-        User user = loginProcess();
+        handleAdminInterface(new User("admin1", "admin1", UserRole.ADMIN)); /*testing purposes*/
+/*        User user = loginProcess();
         UserRole role = user.getRole();
         if(role == UserRole.USER){
             handleUserInterface(user);
         } else if (role == UserRole.ADMIN) {
             handleAdminInterface(user);
-        }
+        }*/
     }
 
     private void handleAdminInterface(final User user) throws IOException {
@@ -83,9 +80,9 @@ public class ServerService {
                     stopServerService();
                     return;
                 }
-                case "listAllUsers"   -> listAllUsers();
+/*                case "listAllUsers"   -> listAllUsers();
                 case "addNewUser"     -> addNewUser();
-                case "deleteUser"     -> deleteUser();
+                case "deleteUser"     -> deleteUser();*/
                 case "sendMessage"    -> sendMessage(user);
                 case "readMessage"    -> readMessage(user);
                 default       -> unknownCommand();
@@ -108,25 +105,23 @@ public class ServerService {
         }
     }
 
-    private void sendMessage(final User user) throws IOException {
+   private void sendMessage(final User user) throws IOException {
         Message message = createMessage(user);
-        List<Message> messageList = new ArrayList<>();
-        messageList.add(message);
         Optional<User> userByNameOptional = userService.getUserByName(message.getRecipient());
         if (userByNameOptional.isEmpty()){
             jsonNode.put("sendMessageWarning", "There is no such user in the system yet.");
             sendJsonMessage(jsonNode);
             return;
         }
-        User userByName = userByNameOptional.get();
 
-        boolean isMessageSent = messageService.sendMessage(messageList);
+        boolean isMessageSent = messageService.sendMessage(message);
         if(isMessageSent){
             jsonNode.put("sendMessage", "The process of sending message successfully finished.");
         }else{
             jsonNode.put("sendMessage", userByNameOptional.get().getUsername()+"'s email box is full, You can not send a message to this user.");
         }
         sendJsonMessage(jsonNode);
+
     }
     private Message createMessage(final User user) throws IOException {
         jsonNode.put("Sending a message", "Provide a recipient name and message content");
@@ -145,25 +140,24 @@ public class ServerService {
 
         return new Message(topic, content, recipient, user.getUsername());
     }
-
     private void readMessage(final User user) throws IOException {
-        Optional<List<Message>> messageListOptional = messageService.getUserMessages(user);
-        if(messageListOptional.isEmpty()){
-            jsonNode.put("emailBoxWarning", "There is no message to read.");
-            sendJsonMessage(jsonNode);
+        Optional<ArrayNode> userMessages = messageService.getUserMessages(user.getUsername());
+
+        ObjectNode warningMessage = objectMapper.createObjectNode();
+
+        if(!userMessages.isPresent()){
+            warningMessage.put("emailBoxWarning", "There is no message to read.");
+             userMessages.get().add(warningMessage);
             return;
         }
 
-        jsonNode.put("emailBoxWarning", "Please, read your messages carefully as the below list will self-destruct after you pick the next option or close a connection.");
-        List<Message> messageList = messageListOptional.get();
-        for(int i=0; i<messageList.size(); i++) {
-            jsonNode.put("readMessage nr." + (i + 1) + " from "+ messageList.get(i).getSender(),  messageList.get(i).getContent());
-        }
+        warningMessage.put("emailBoxWarning", "Please, read your messages carefully as the below list will self-destruct after you pick the next option or close a connection.");
+        userMessages.get().add(warningMessage);
 
-        sendJsonMessage(jsonNode);
+        out.println(userMessages.get());
     }
 
-    private void listAllUsers() throws IOException {
+    /*private void listAllUsers() throws IOException {
         List<User> allUserList = userService.getUserAndAdminList();
         allUserList.stream()
                 .forEach( (element) -> {
@@ -171,11 +165,11 @@ public class ServerService {
                     jsonNode.put(String.valueOf(index), element.getUsername() + " " + element.getRole());
                 } );
 
-/*        List<User> allUserList2 = userService.getAllUserList();
+*//*        List<User> allUserList2 = userService.getAllUserList();
         allUserList2.stream()
                 .forEach((index, user) -> {
                     jsonNode.put(String.valueOf(index), user.getUsername());
-                });*/
+                });*//*
 
         sendJsonMessage(jsonNode);
     }
@@ -224,7 +218,7 @@ public class ServerService {
         }
         sendJsonMessage(jsonNode);
     }
-
+*/
     private User loginProcess() throws IOException {
         Optional<User> loginAttempt;
         List<User> allUserList = userService.getUserAndAdminList();
