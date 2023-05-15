@@ -13,7 +13,6 @@ import org.jooq.Result;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,41 +38,24 @@ public class UserService{
     }
 
     public List<User> getUserList() {
-        User userFound;
         Result<Record> userRecordList = userRepository.getUserList();
-
-        if(userRecordList.isNotEmpty()) {
-            for(Record record : userRecordList){
-                userFound = new User(record.getValue("username", String.class)
-                        , record.getValue("password", String.class)
-                        , record.getValue("role", UserRole.class));
-                userList.add(userFound);
-            }
-        }
-        return userList;
+        return getListFromRecord(userRecordList);
     }
 
     public List<User> getAdminList() {
-        User userFound;
         Result<Record> adminRecordList = userRepository.getAdminList();
-
-        if(adminRecordList.isNotEmpty()) {
-            for(Record record : adminRecordList){
-                userFound = new User(record.getValue("username", String.class)
-                        , record.getValue("password", String.class)
-                        , record.getValue("role", UserRole.class));
-                userList.add(userFound);
-            }
-        }
-        return userList;
+        return getListFromRecord(adminRecordList);
     }
 
     public List<User> getUserAndAdminList() {
-        User userFound;
         Result<Record> userAndAdminRecordList = userRepository.getUserAndAdminList();
+        return getListFromRecord(userAndAdminRecordList);
+    }
 
-        if(userAndAdminRecordList.isNotEmpty()) {
-            for(Record record : userAndAdminRecordList){
+    private List<User> getListFromRecord(Result<Record> recordList) {
+        User userFound;
+        if(recordList.isNotEmpty()) {
+            for(Record record : recordList){
                 userFound = new User(record.getValue("username", String.class)
                         , record.getValue("password", String.class)
                         , record.getValue("role", UserRole.class));
