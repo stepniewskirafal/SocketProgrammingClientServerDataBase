@@ -26,12 +26,14 @@ public class UserService{
 
     public Optional<User> getUserByName(final String userName) {
         Result<Record> userByName = userRepository.getUserByName(userName);
-        User userFound = new User();
+        User userFound;
 
         if(userByName.isNotEmpty()) {
             userFound = new User(userByName.get(0).getValue("username", String.class)
                     , userByName.get(0).getValue("password", String.class)
                     , userByName.get(0).getValue("role", UserRole.class));
+        }else {
+            userFound = null;
         }
 
         return Optional.ofNullable(userFound);

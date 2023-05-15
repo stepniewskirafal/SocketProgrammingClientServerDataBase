@@ -39,7 +39,7 @@ public class MessageRepository {
         SelectConditionStep<Record1<Integer>> countStatement = dslContext.selectCount()
                                                                 .from(table("message"))
                                                                 .where(field("sender").eq(userName));
-        return countStatement.fetchOne();
+        return countStatement.fetchSingle();
     }
 
     public void addNewMessage(Message message ) {

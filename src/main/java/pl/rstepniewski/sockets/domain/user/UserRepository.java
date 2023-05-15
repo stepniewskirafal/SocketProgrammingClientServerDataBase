@@ -45,14 +45,13 @@ public class UserRepository{
     public Result<Record> getAdminList() {
         SelectConditionStep<Record> adminsRecord = dslContext.select()
                                                              .from(table("user"))
-                                                             .where(field("role").eq(UserRole.USER.getRoleName()));
+                                                             .where(field("role").eq(UserRole.ADMIN.getRoleName()));
         return adminsRecord.fetch();
     }
 
     public Result<Record> getUserAndAdminList() {
-        SelectConditionStep<Record> usersAdminsRecord = dslContext.select()
-                                                                  .from(table("user"))
-                                                                  .where(field("role").eq(UserRole.USER.getRoleName()));
+        SelectJoinStep<Record> usersAdminsRecord = dslContext.select()
+                                                             .from(table("user"));
         return usersAdminsRecord.fetch();
     }
 

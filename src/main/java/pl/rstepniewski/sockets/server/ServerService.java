@@ -12,7 +12,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.jooq.tools.json.JSONArray;
 import pl.rstepniewski.sockets.domain.message.*;
 import pl.rstepniewski.sockets.domain.user.*;
 
@@ -33,7 +32,6 @@ public class ServerService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ObjectNode jsonNode = objectMapper.createObjectNode();
     private MessageRepository messageRepository = new MessageRepository();
-    JSONArray jsonArray = new JSONArray();
     UserService userService = new UserService();
     MessageService messageService = new MessageService(messageRepository);
 
@@ -59,14 +57,14 @@ public class ServerService {
     }
 
     private void mainLoop() throws IOException {
-        handleAdminInterface(new User("admin1", "admin1", UserRole.ADMIN)); /*testing purposes*/
-/*        User user = loginProcess();
+       // handleAdminInterface(new User("admin1", "admin1", UserRole.ADMIN)); /*testing purposes*/
+        User user = loginProcess();
         UserRole role = user.getRole();
         if(role == UserRole.USER){
             handleUserInterface(user);
         } else if (role == UserRole.ADMIN) {
             handleAdminInterface(user);
-        }*/
+        }
     }
 
     private void handleAdminInterface(final User user) throws IOException {
@@ -80,9 +78,9 @@ public class ServerService {
                     stopServerService();
                     return;
                 }
-/*                case "listAllUsers"   -> listAllUsers();
+                case "listAllUsers"   -> listAllUsers();
                 case "addNewUser"     -> addNewUser();
-                case "deleteUser"     -> deleteUser();*/
+                case "deleteUser"     -> deleteUser();
                 case "sendMessage"    -> sendMessage(user);
                 case "readMessage"    -> readMessage(user);
                 default       -> unknownCommand();
@@ -156,20 +154,13 @@ public class ServerService {
 
         out.println(userMessages.get());
     }
-
-    /*private void listAllUsers() throws IOException {
+    private void listAllUsers() throws JsonProcessingException {
         List<User> allUserList = userService.getUserAndAdminList();
         allUserList.stream()
                 .forEach( (element) -> {
                     int index = allUserList.indexOf(element);
                     jsonNode.put(String.valueOf(index), element.getUsername() + " " + element.getRole());
                 } );
-
-*//*        List<User> allUserList2 = userService.getAllUserList();
-        allUserList2.stream()
-                .forEach((index, user) -> {
-                    jsonNode.put(String.valueOf(index), user.getUsername());
-                });*//*
 
         sendJsonMessage(jsonNode);
     }
@@ -218,7 +209,7 @@ public class ServerService {
         }
         sendJsonMessage(jsonNode);
     }
-*/
+
     private User loginProcess() throws IOException {
         Optional<User> loginAttempt;
         List<User> allUserList = userService.getUserAndAdminList();
