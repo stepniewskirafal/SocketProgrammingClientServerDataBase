@@ -17,15 +17,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Map;
 import java.util.Scanner;
 
 public class Client {
 
     private static final String LOCAL_HOST = "localhost";
     private static final int PORT_NUMBER = 6900;
-    public static final int ONE_NODE_JSON = 1;
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private Socket clientSocket;
     private PrintWriter printWriter;
     private BufferedReader bufferedReader;
@@ -69,17 +66,7 @@ public class Client {
         }
     }
 
-    private void printMessageFromServer(final String messageFromServer) throws JsonProcessingException {
-/*        final Map<String, String> mappedMessageFromServer = objectMapper.readValue(messageFromServer, Map.class);
-
-        String json;
-        if (mappedMessageFromServer.size() > ONE_NODE_JSON) {
-            json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(mappedMessageFromServer);
-        } else {
-            json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(mappedMessageFromServer.values());
-        }
-
-        ConsoleUtils.printLine(json);*/
+    private void printMessageFromServer(final String messageFromServer) {
         ConsoleUtils.printLine(messageFromServer);
     }
 

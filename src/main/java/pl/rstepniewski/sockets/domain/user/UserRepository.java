@@ -35,20 +35,6 @@ public class UserRepository{
         return userRecord.fetch();
     }
 
-    public Result<Record> getUserList() {
-        SelectConditionStep<Record> usersRecord = dslContext.select()
-                                                            .from(table("user"))
-                                                            .where(field("role").eq(UserRole.USER.getRoleName()));
-        return usersRecord.fetch();
-    }
-
-    public Result<Record> getAdminList() {
-        SelectConditionStep<Record> adminsRecord = dslContext.select()
-                                                             .from(table("user"))
-                                                             .where(field("role").eq(UserRole.ADMIN.getRoleName()));
-        return adminsRecord.fetch();
-    }
-
     public Result<Record> getUserAndAdminList() {
         SelectJoinStep<Record> usersAdminsRecord = dslContext.select()
                                                              .from(table("user"));

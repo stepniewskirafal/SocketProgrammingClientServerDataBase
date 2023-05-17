@@ -39,16 +39,6 @@ public class UserService{
         return Optional.ofNullable(userFound);
     }
 
-    public List<User> getUserList() {
-        Result<Record> userRecordList = userRepository.getUserList();
-        return getListFromRecord(userRecordList);
-    }
-
-    public List<User> getAdminList() {
-        Result<Record> adminRecordList = userRepository.getAdminList();
-        return getListFromRecord(adminRecordList);
-    }
-
     public List<User> getUserAndAdminList() {
         Result<Record> userAndAdminRecordList = userRepository.getUserAndAdminList();
         return getListFromRecord(userAndAdminRecordList);

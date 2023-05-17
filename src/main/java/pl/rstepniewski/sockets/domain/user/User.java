@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 
 public class User {
-
     private String username;
     private String password;
     private UserRole role;

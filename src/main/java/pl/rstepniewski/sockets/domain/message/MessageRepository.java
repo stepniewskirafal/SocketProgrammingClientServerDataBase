@@ -9,8 +9,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-
-
 /**
  * Created by rafal on 14.05.2023
  *
@@ -49,8 +47,6 @@ public class MessageRepository {
                 .set(field("recipient"), message.getRecipient())
                 .set(field("sender"), message.getSender())
                 .execute();
-
     }
-
 
 }

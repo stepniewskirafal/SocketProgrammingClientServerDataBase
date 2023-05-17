@@ -9,6 +9,7 @@ package pl.rstepniewski.sockets.server;
  */
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -139,6 +140,7 @@ public class ServerService {
         return new Message(topic, content, recipient, user.getUsername());
     }
     private void readMessage(final User user) throws IOException {
+        ObjectNode result = objectMapper.createObjectNode();
         Optional<ArrayNode> userMessages = messageService.getUserMessages(user.getUsername());
 
         ObjectNode warningMessage = objectMapper.createObjectNode();
@@ -152,7 +154,8 @@ public class ServerService {
         warningMessage.put("emailBoxWarning", "Please, read your messages carefully as the below list will self-destruct after you pick the next option or close a connection.");
         userMessages.get().add(warningMessage);
 
-        out.println(userMessages.get());
+        result.put("readMessage", warningMessage);
+        sendJsonMessage(result);
     }
     private void listAllUsers() throws JsonProcessingException {
         List<User> allUserList = userService.getUserAndAdminList();

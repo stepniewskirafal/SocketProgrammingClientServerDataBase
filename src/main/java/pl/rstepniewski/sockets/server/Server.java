@@ -16,8 +16,8 @@ import java.net.Socket;
 import java.sql.SQLException;
 
 public class Server {
-    private static final String SERVER_VERSION = "0.3.0";
-    private static final String CREATION_DATE = "18.04.2023";
+    private static final String SERVER_VERSION = "0.4.0";
+    private static final String CREATION_DATE = "16.05.2023";
     private static final int PORT_NUMBER = 6900;
     private ServerSocket serverSocket;
     private Socket clientSocket;
@@ -46,7 +46,7 @@ public class Server {
         return clientSocket;
     }
 
-    public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public static void main(String[] args) throws IOException, SQLException {
         ServerService serverService = new ServerService(new Server());
         serverService.run();
     }

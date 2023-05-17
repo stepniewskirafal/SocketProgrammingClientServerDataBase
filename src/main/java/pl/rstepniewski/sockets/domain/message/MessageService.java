@@ -80,7 +80,6 @@ public class MessageService {
                 isMessageSent = false;
             }
         }
-
         return isMessageSent;
     }
 }

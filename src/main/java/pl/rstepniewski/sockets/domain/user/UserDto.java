@@ -9,7 +9,6 @@ package pl.rstepniewski.sockets.domain.user;
  */
 
 public class UserDto {
-
     private final String username;
     private final String password;
 
